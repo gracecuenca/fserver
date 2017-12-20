@@ -12,7 +12,22 @@
   returns the file descriptor for the upstream pipe.
   =========================*/
 int server_setup() {
-  return -1;
+  //creating the wkp
+  int from_client;
+  mkfifo("luigi", 0600);
+  printf("created the wkp\n");
+
+  //blocks on open
+  printf("awaiting client connection...\n");
+  from_client = open("luigi", O_RDONLY, 0);
+
+  //removing because connection has been established
+  printf("successfully connected\n");
+  printf("now removing the wkp\n");
+  remove("luigi");
+
+  //returning upstream pipe fd
+  return from_client;
 }
 
 
@@ -25,7 +40,24 @@ int server_setup() {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int server_connect(int from_client) {
-  return -1;
+  char buff[HANDSHAKE_BUFFER_SIZE];
+  int to_client;
+
+  //reading from wkp to get to client
+  printf("reading from well known pipe...\n");
+  read(from_client, buff, sizeof(buff));
+  printf("server read: %s\n", buff);
+
+  //writing to client through private pipe
+  to_client = open(buff, O_WRONLY, 0);
+  write(to_client, buff, sizeof(buff));
+
+  //completing the handshake by reading from client one last time
+  if(read(from_client, buff, sizeof(buff))){
+    printf("server-client connection established\n");  
+  }
+
+  return to_client;
 }
 
 /*=========================
