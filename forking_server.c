@@ -47,7 +47,8 @@ void process(char * s) {
   int counter = 0;
   while(s[counter]){
     if(s[counter] == 'c'){
-      s[counter]-=1;
+      s[counter] = 'b';
     }
+    counter++;
   }
 }
